@@ -1,53 +1,49 @@
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
+import express from "express";
 import { z } from "zod";
 
-// Create server instance
 const server = new McpServer({
-  name: "mcp-echo",
-  version: "1.0.0",
-  capabilities: {
-    resources: {},
-    tools: {},
-  },
+  name: "Echo",
+  version: "1.0.0"
 });
 
-server.resource("echo", new ResourceTemplate("echo://{message}", { list: undefined }), async (uri, { message }) => ({
-  contents: [
-    {
-      uri: uri.href,
-      text: `Resource echo: ${message}`,
-    },
-  ],
-}));
-
-// Register weather tools
-server.tool(
+server.resource(
   "echo",
-  "Echo a message",
-  {
-    message: z.string().describe("The message to echo"),
-  },
-  async ({ message }) => {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `당신이 보낸 메시지는 ${message}입니다.`,
-        },
-      ],
-    };
-  }
+  new ResourceTemplate("echo://{message}", { list: undefined }),
+  async (uri, { message }) => ({
+    contents: [{
+      uri: uri.href,
+      text: `Resource echo: ${message}`
+    }]
+  })
 );
 
-// Start the server
-async function main() {
+server.tool(
+  "echo",
+  { message: z.string() },
+  async ({ message }) => ({
+    content: [{ type: "text", text: `Tool echo: ${message}` }]
+  })
+);
+
+server.prompt(
+  "echo",
+  { message: z.string() },
+  ({ message }) => ({
+    messages: [{
+      role: "user",
+      content: {
+        type: "text",
+        text: `Please process this message: ${message}`
+      }
+    }]
+  })
+);
+
+async function init() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Echo MCP 서버가 실행되었습니다. (stdio)");
 }
 
-main().catch((error) => {
-  console.error("오류가 발생했습니다:", error);
-  process.exit(1);
-});
+init();
