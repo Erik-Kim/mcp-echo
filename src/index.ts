@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
@@ -11,6 +11,15 @@ const server = new McpServer({
     tools: {},
   },
 });
+
+server.resource("echo", new ResourceTemplate("echo://{message}", { list: undefined }), async (uri, { message }) => ({
+  contents: [
+    {
+      uri: uri.href,
+      text: `Resource echo: ${message}`,
+    },
+  ],
+}));
 
 // Register weather tools
 server.tool(
