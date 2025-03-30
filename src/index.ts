@@ -1,6 +1,5 @@
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
-import express from "express";
 import { z } from "zod";
 
 const server = new McpServer({
@@ -23,7 +22,7 @@ server.tool(
   "echo",
   { message: z.string() },
   async ({ message }) => ({
-    content: [{ type: "text", text: `Tool echo: ${message}` }]
+    content: [{ type: "text", text: `MCP Echo: 당신이 보낸 메시지는 "${message}"입니다. 이 메시지를 처리하는 것은 저의 임무입니다.` }]
   })
 );
 
