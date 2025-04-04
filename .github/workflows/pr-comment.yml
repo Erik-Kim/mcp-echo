@@ -1,71 +1,68 @@
-name: PR Comment Response
+name: Storybook Deploy
 
 on:
+  pull_request:
+    types:
+      - opened
   issue_comment:
-    types: 
+    types:
       - created
       - edited
 
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
 jobs:
-  respond-to-comment:
+  notify:
+    name: Notify Storybook Deploy
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      issues: write
-    
     steps:
-      - name: Check if comment is on PR
-        if: contains(github.event.comment.html_url, '/pull/')
-        run: |
-          echo "Comment is on PR"
-          
-      - name: Get PR number
-        id: pr
-        run: |
-          PR_NUMBER=$(echo ${{ github.event.issue.number }})
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          
+      - name: Add notification comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '배포를 원하시면 `/deploy`를 입력해주세요. 정보를 원하시면 `/info`를 입력해주세요.'
+            });
+
+  respond-to-comment:
+    name: Respond to PR Comment
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.html_url, '/pull/')
+    runs-on: ubuntu-latest
+    steps:
       - name: Check comment content
-        id: comment
+        id: check-comment
         run: |
           if contains(github.event.comment.body, '/deploy'); then
             echo "action=deploy" >> $GITHUB_OUTPUT
           elif contains(github.event.comment.body, '/info'); then
             echo "action=info" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Respond to deploy request
-        if: steps.comment.outputs.action == 'deploy'
-        uses: actions/github-script@v6
+        if: steps.check-comment.outputs.action == 'deploy'
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.issues.createComment({
-              issue_number: ${{ steps.pr.outputs.pr_number }},
+              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '배포를 요청했습니다. 완료했습니다.'
-            })
-            
+              body: '배포 완료'
+            });
+
       - name: Respond to info request
-        if: steps.comment.outputs.action == 'info'
-        uses: actions/github-script@v6
+        if: steps.check-comment.outputs.action == 'info'
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.issues.createComment({
-              issue_number: ${{ steps.pr.outputs.pr_number }},
+              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '정보를 요청했습니다. 완료했습니다.'
-            })
-            
-      - name: Add initial comment
-        if: github.event.action == 'opened'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: ${{ steps.pr.outputs.pr_number }},
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '배포를 원하시면 /deploy 정보를 원하시면 /info를 입력해 주세요.'
-            }) 
+              body: '정보 제공 완료'
+            });
