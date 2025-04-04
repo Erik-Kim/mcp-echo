@@ -10,11 +10,7 @@ on:
       - edited
 
 env:
-  GITHUB_TOKEN: ${{ github.token }}
-
-permissions:
-  pull-requests: write
-  issues: write
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   notify:
@@ -25,6 +21,7 @@ jobs:
       - name: Add notification comment
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -51,6 +48,7 @@ jobs:
         if: steps.check-comment.outputs.action == 'deploy'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -63,6 +61,7 @@ jobs:
         if: steps.check-comment.outputs.action == 'info'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.issues.createComment({
               issue_number: context.issue.number,
