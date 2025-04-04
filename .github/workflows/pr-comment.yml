@@ -1,0 +1,85 @@
+name: Test Comment
+
+on:
+  pull_request:
+    types:
+      - opened
+  issue_comment:
+    types:
+      - created
+      - edited
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  notify:
+    name: Notify 
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add notification comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '배포를 원하시면 `/deploy`를 입력해주세요. 정보를 원하시면 `/info`를 입력해주세요.'
+              });
+            } catch (error) {
+              console.error('Error creating comment:', error);
+              process.exit(1);
+            }
+
+  respond-to-comment:
+    name: Respond to PR Comment
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.html_url, '/pull/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check comment content
+        id: check-comment
+        run: |
+          if contains(github.event.comment.body, '/deploy'); then
+            echo "action=deploy" >> $GITHUB_OUTPUT
+          elif contains(github.event.comment.body, '/info'); then
+            echo "action=info" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Respond to deploy request
+        if: steps.check-comment.outputs.action == 'deploy'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '배포 완료'
+              });
+            } catch (error) {
+              console.error('Error creating comment:', error);
+              process.exit(1);
+            }
+
+      - name: Respond to info request
+        if: steps.check-comment.outputs.action == 'info'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '정보 제공 완료'
+              });
+            } catch (error) {
+              console.error('Error creating comment:', error);
+              process.exit(1);
+            }
