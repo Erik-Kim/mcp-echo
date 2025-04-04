@@ -12,6 +12,10 @@ on:
 env:
   GITHUB_TOKEN: ${{ github.token }}
 
+permissions:
+  pull-requests: write
+  issues: write
+
 jobs:
   notify:
     name: Notify Storybook Deploy
