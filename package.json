@@ -1,8 +1,8 @@
 {
-  "name": "hol-mcp",
+  "name": "mcp-echo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "MCP Echo Server for Raycast",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
     "start": "node dist/index.js",
@@ -10,18 +10,24 @@
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["raycast", "mcp", "echo"],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
-    "@types/express": "^5.0.1",
-    "express": "^5.0.1",
+    "@raycast/api": "^1.60.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.13",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
+  },
+  "raycast": {
+    "title": "MCP Echo",
+    "description": "MCP Echo Server for Raycast",
+    "icon": "icon.png",
+    "author": "Your Name",
+    "categories": ["Developer Tools"]
   }
 }
